@@ -13,9 +13,9 @@ import (
 
 var (
 	enablePrometheus           = flag.Bool("enable_prometheus", false, "Enable prometheus exporter")
-	prometheusListeningAddress = flag.String("telemetry.address", ":9116", "Address on which to expose metrics.")
-	prometheusMetricsEndpoint  = flag.String("telemetry.endpoint", "/metrics", "Path under which to expose metrics.")
-	kafkaBootstrapServers      = flag.String("kafka.bootstrap.servers", "", "Kafka brokers.")
+	prometheusListeningAddress = flag.String("telemetry.address", ":9116", "Address on which to expose metrics")
+	prometheusMetricsEndpoint  = flag.String("telemetry.endpoint", "/metrics", "Path under which to expose metrics")
+	kafkaBootstrapServers      = flag.String("kafka.bootstrap.servers", "", "Kafka bootstrap servers")
 	kafkaTopic                 = flag.String("kafka.topic", "", "Kafka topic")
 	kafkaSasl                  = flag.Bool("kafka.sasl", false, "Kafka enable sasl")
 	clickhouseScrapeURI        = flag.String("scrape_uri", "http://localhost:8123/", "URI to clickhouse http endpoint")

@@ -35,6 +35,8 @@ func NewClickhouseMetrics(
 			metrics.NewClickhouseParts(__usedMetrics),
 			metrics.NewClickhouseMutations(__usedMetrics),
 			metrics.NewClickhouseQueries(__usedMetrics, collectIntervalInSecond),
+			metrics.NewClickhouseFailedQueries(__usedMetrics, collectIntervalInSecond),
+			metrics.NewClickhouseTableQueryCount(__usedMetrics, collectIntervalInSecond),
 		},
 	}
 }
