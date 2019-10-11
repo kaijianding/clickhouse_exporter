@@ -15,7 +15,7 @@ func NewClickhouseQueries(usedMetrics map[string]bool, collectIntervalInSecond i
 	return &ClickhouseQueries{
 		usedMetrics: usedMetrics,
 		baseQuery: `select initial_user as user,avg(query_duration_ms) as avg_ms,max(query_duration_ms) as max_ms,count(*) as query_count from system.query_log
-			where is_initial_query=1 and written_rows=0 and read_rows>0 and type=2 and query_duration_ms>0 and initial_user != 'default'
+			where is_initial_query=1 and written_rows=0 and read_rows>0 and type=2 and query_duration_ms>0
 			and position(lower(query), 'from')>0 and position(lower(query), 'system')=0
 			and event_time>addSeconds(now(), -` + strconv.Itoa(collectIntervalInSecond) + ") group by initial_user",
 	}

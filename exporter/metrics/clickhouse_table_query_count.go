@@ -14,17 +14,17 @@ type ClickhouseTableQueryCount struct {
 func NewClickhouseTableQueryCount(usedMetrics map[string]bool, collectIntervalInSecond int) *ClickhouseTableQueryCount {
 	return &ClickhouseTableQueryCount{
 		usedMetrics: usedMetrics,
-		baseQuery: `select t,count(*) as c from (
-	select arrayJoin(case when notEmpty(t1) then t1 else t2 end) as t from (
+		baseQuery: `select t,initial_user,count(*) as c from (
+	select arrayJoin(case when notEmpty(t1) then t1 else t2 end) as t,initial_user from (
 		select ` +
-			"extractAll(query,'FROM\\\\s(`?[\\\\w_]+`?[.\\\\w_]*)') as t1, " +
-			"extractAll(query,'from\\\\s(`?[\\\\w_]+`?[.\\\\w_]*)') as t2 " +
-			`from system.query_log
-		where is_initial_query=1 and written_rows=0 and read_rows>0 and query_duration_ms>0 and initial_user != 'default' 
+			"extractAll(query,'FROM\\\\s(`?[\\\\w_-]+`?[.\\\\w_-`]*)') as t1, " +
+			"extractAll(query,'from\\\\s(`?[\\\\w_-]+`?[.\\\\w_-`]*)') as t2, " +
+			`initial_user from system.query_log
+		where is_initial_query=1 and written_rows=0 and read_rows>0 and query_duration_ms>0
         and position(lower(query), 'from')>0
 		and event_time>addSeconds(now(), -` + strconv.Itoa(collectIntervalInSecond) + `)
 	)
-) where not startsWith(lower(t),'system') group by t`,
+) where not startsWith(lower(t),'system') group by t,initial_user`,
 	}
 }
 
@@ -33,7 +33,7 @@ func (c *ClickhouseTableQueryCount) GetCurrentQuery() *string {
 }
 
 func (c *ClickhouseTableQueryCount) GetExpectedResultSize() int {
-	return 2
+	return 3
 }
 
 func (c *ClickhouseTableQueryCount) Collect(reporter exporter.Reporter, values []string) error {
@@ -41,11 +41,13 @@ func (c *ClickhouseTableQueryCount) Collect(reporter exporter.Reporter, values [
 	table := strings.TrimSpace(values[0])
 	arr := strings.Split(table, ".")
 	if len(arr) > 1 {
-		database = arr[0]
+		database = strings.ReplaceAll(arr[0], "`", "")
 		table = arr[1]
 	}
+	table = strings.ReplaceAll(table, "`", "")
+	user := strings.TrimSpace(values[1])
 
-	count, err := strconv.Atoi(strings.TrimSpace(values[1]))
+	count, err := strconv.Atoi(strings.TrimSpace(values[2]))
 	if err != nil {
 		return err
 	}
@@ -54,6 +56,7 @@ func (c *ClickhouseTableQueryCount) Collect(reporter exporter.Reporter, values [
 		reporter.Gauge(&exporter.DataPoint{
 			Metric: "TableQueryCount",
 			Labels: map[string]string{
+				"user":     user,
 				"database": database,
 				"table":    table,
 			},

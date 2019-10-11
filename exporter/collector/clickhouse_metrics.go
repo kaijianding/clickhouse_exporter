@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/kaijianding/clickhouse_exporter/exporter"
 	"github.com/kaijianding/clickhouse_exporter/exporter/metrics"
+	"reflect"
 	"strings"
 )
 
@@ -37,6 +38,7 @@ func NewClickhouseMetrics(
 			metrics.NewClickhouseQueries(__usedMetrics, collectIntervalInSecond),
 			metrics.NewClickhouseFailedQueries(__usedMetrics, collectIntervalInSecond),
 			metrics.NewClickhouseTableQueryCount(__usedMetrics, collectIntervalInSecond),
+			metrics.NewClickhouseTableInserts(__usedMetrics, collectIntervalInSecond),
 		},
 	}
 }
@@ -45,7 +47,8 @@ func NewClickhouseMetrics(
 func (m *ClickhouseMetrics) Collect(r exporter.Reporter) {
 	for _, metric := range m.metrics {
 		if err := m.collect(r, metric); err != nil {
-			fmt.Printf("Error scraping clickhouse: %s\n", err)
+			metricName := reflect.TypeOf(metric).Elem().Name()
+			fmt.Printf("%s Error scraping clickhouse: %s\n", metricName, err)
 			m.scrapeFailures.Inc(r)
 		}
 	}
