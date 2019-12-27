@@ -15,7 +15,7 @@ func NewClickhouseTableQueryCount(usedMetrics map[string]bool, collectIntervalIn
 	return &ClickhouseTableQueryCount{
 		usedMetrics: usedMetrics,
 		baseQuery: `select t,initial_user,count(*) as c from (
-	select arrayJoin(case when notEmpty(t1) then t1 else t2 end) as t,initial_user from (
+	select arrayJoin(arrayDistinct(case when notEmpty(t1) then t1 else t2 end)) as t,initial_user from (
 		select ` +
 			"extractAll(query,'FROM\\\\s(`?[\\\\w_-]+`?[.\\\\w_-`]*)') as t1, " +
 			"extractAll(query,'from\\\\s(`?[\\\\w_-]+`?[.\\\\w_-`]*)') as t2, " +
